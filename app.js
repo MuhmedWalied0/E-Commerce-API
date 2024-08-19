@@ -7,7 +7,8 @@ import globalErrorHandller from "./middlewares/errorMiddleware.js";
 /*---------------------------------------*/
 import { categoryRoute } from "./routes/categoryRoute.js";
 import { subCategoryRoute } from "./routes/subCategoryRoute.js";
-import { BrandRoute } from "./routes/brandRoute.js";
+import { brandRoute } from "./routes/brandRoute.js";
+import { productRoute } from "./routes/productRoute.js";
 /*---------------------------------------*/
 const port = process.env.PORT || 3001;
 const app = express();
@@ -20,7 +21,8 @@ if (process.env.NODE_ENV === "development") {
 /*---------------------------------------*/
 app.use("/api/categories/", categoryRoute);
 app.use("/api/subcategories/", subCategoryRoute);
-app.use("/api/brands/", BrandRoute);
+app.use("/api/brands/", brandRoute);
+app.use("/api/products/", productRoute);
 /*---------------------------------------*/
 
 app.use("*", (req, res, next) => {

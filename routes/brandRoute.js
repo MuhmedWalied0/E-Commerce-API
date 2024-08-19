@@ -29,4 +29,4 @@ router
   .put(updateBrandValidator, updateBrand)
   .delete(deleteBrandValidator, deleteBrand);
 
-export const BrandRoute = router;
+export const brandRoute = router;
