@@ -12,13 +12,8 @@ const getSubCategories = asyncHandeler(async (req, res, next) => {
   const page = +req.query.page || 1;
   const limit = +req.query.limit || 5;
   const skip = (page - 1) * limit;
-
-  const findByCategoryID =
-    req.params.categoryId === undefined
-      ? {}
-      : { category: req.params.categoryId };
-
-  const subCategories = await SubCategory.find(findByCategoryID)
+ console.log(req.params.category)
+  const subCategories = await SubCategory.find(req.params.category)
     .limit(limit)
     .skip(skip);
   if (subCategories.length < 1)
@@ -47,15 +42,9 @@ const getSubCategory = asyncHandeler(async (req, res, next) => {
 */
 
 const createSubCategory = asyncHandeler(async (req, res, next) => {
-  const categoryID =
-    req.params.categoryID === undefined
-      ? req.body.categoryID
-      : req.params.categoryID;
-
-    console.log(categoryID)
-
+  const categoryID =req.params.filterCategoryId
   const { name } = req.body;
-
+  console.log(categoryID)
   const category = await Category.findById(categoryID);
   if (!category) return next(new ApiError("Category id not found", 404));
 

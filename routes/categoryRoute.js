@@ -15,7 +15,7 @@ import {
   deleteCategories,
 } from "../controllers/categoryController.js";
 const router = express.Router();
-router.use("/:categoryID/subcategories",subCategoryRoute)
+router.use("/:categoryId/subcategories",subCategoryRoute)
 router
   .route("/")
   .get(getCategories)

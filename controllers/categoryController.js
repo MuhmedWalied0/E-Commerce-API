@@ -16,7 +16,7 @@ const getCategories = asyncHandeler(async (req, res, next) => {
   const categories = await Category.find().limit(limit).skip(skip);
   if (categories.length < 1)
     return next(new ApiError("Categories not found", 404));
-
+  
   res
     .status(200)
     .json({ result: categories.length, page, limit, data: categories });
@@ -28,10 +28,7 @@ const getCategories = asyncHandeler(async (req, res, next) => {
     @access Public
 */
 const getCategory = asyncHandeler(async (req, res, next) => {
-  const { id } = req.params;
-  const category = await Category.findById(id);
-  if (!category) return next(new ApiError("Category not found", 404));
-  res.json({ data: category });
+  res.json({ data: req.category });
 });
 
 /*
@@ -41,12 +38,6 @@ const getCategory = asyncHandeler(async (req, res, next) => {
 */
 const createCategory = asyncHandeler(async (req, res, next) => {
   const { name } = req.body;
-
-  const findCategory = await Category.findOne({ name });
-  if (findCategory) {
-    return next(new ApiError("Category with this name already exists", 400));
-  }
-
   const category = await Category.create({ name, slug: slugify(name) });
   res.status(201).json(category);
 });

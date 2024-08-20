@@ -1,5 +1,10 @@
 import { param, body, check, validationResult } from "express-validator";
 import validator from "../../middlewares/validatorMidlleware.js";
+import Category from "../../models/categoryModel.js";
+import SubCategory from "../../models/subCategoryModel.js";
+import Brand from "../../models/brandModel.js";
+import mongoose from "mongoose";
+const { Promise } = mongoose;
 
 const getProductValidator = [
   param("id")
@@ -58,16 +63,49 @@ const createProductValidator = [
     .optional(true)
     .isArray()
     .withMessage("images must be an array"),
-  body("brand").optional(true).isMongoId().withMessage("invalid brand id"),
+  body("brand")
+    .optional(true)
+    .isMongoId()
+    .withMessage("invalid brand id")
+    .custom(async (val) => {
+      const brand = await Brand.findOne(val);
+      if (!brand) {
+        throw new Error("invalid brand id");
+      }
+      return true;
+    }),
   body("category")
     .notEmpty()
     .withMessage("category id must be provied")
     .isMongoId()
-    .withMessage("invalid category id"),
+    .withMessage("invalid category id")
+    .custom(async (val) => {
+      const category = await Category.findById(val);
+      if (!category) {
+        throw new Error("invalid category id");
+      }
+      return true;
+    }),
   body("subCategory")
     .optional(true)
-    .isMongoId()
-    .withMessage("invalid subCategory id"),
+    .isArray()
+    .withMessage("subCategory must be an array")
+    .custom(async (val, { req }) => {
+      const subCategory = await SubCategory.find({
+        category: req.body.category,
+      }).select('_id');
+      const validSubCategoryIds = subCategory.map(subCat => subCat._id.toString());
+      console.log(validSubCategoryIds);
+      for (const id of val) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+          throw new Error(`invalid subCategory id: ${id}`);
+        }
+        if (!validSubCategoryIds.includes(id)) {
+          throw new Error(`subCategory id not found in the specified category: ${id}`);
+        }
+      }
+      return true;
+    }),
   body("ratingReviews")
     .optional(true)
     .isLength({ min: 1 })

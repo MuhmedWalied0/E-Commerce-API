@@ -1,6 +1,7 @@
 import Product from "../models/productModel.js";
 import asyncHandeler from "express-async-handler";
 import slugify from "slugify";
+import ApiError from "../utils/apiErrors.js";
 
 /* 
     @desc get all Products
