@@ -12,7 +12,7 @@ const getProducts = asyncHandeler(async (req, res, next) => {
   //build query
   const apiFutures = new ApiFutures(Product.find(), req.query).sort().fields();
   await apiFutures.filter();
-  await apiFutures.search();
+  await apiFutures.search("Product");
   apiFutures.paginate();
   const{mongooseQuery,pagination}=apiFutures
 
