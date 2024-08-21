@@ -1,21 +1,29 @@
 import Brand from "../models/brandModel.js";
 import asyncHandeler from "express-async-handler";
 import ApiError from "../utils/apiErrors.js";
-
+import ApiFutures from "../utils/apiFutures.js";
+import slugify from "slugify";
 /* 
     @desc get all brand
     @route GET /api/brands/
     @access Public
 */
 const getBrands = asyncHandeler(async (req, res, next) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 2;
-  const skip = (page - 1) * limit;
+  //build query
+  const apiFutures = new ApiFutures(Brand.find(), req.query).sort().fields();
+  await apiFutures.filter();
+  await apiFutures.search();
+  apiFutures.paginate();
+  const { mongooseQuery, pagination } = apiFutures;
 
-  const brand = await Brand.find().limit(limit).skip(skip);
-  if (brand.length < 1) return next(new ApiError("Brands not found", 404));
+  const brands = await mongooseQuery;
+  if (brands.length < 1) return next(new ApiError("Brands not found", 404));
 
-  res.status(200).json({ result: brand.length, page, limit, data: brand });
+  res.status(200).json({
+    result: brands.length,
+    info: pagination,
+    data: brands,
+  });
 });
 
 /* 

@@ -2,21 +2,27 @@ import Product from "../models/productModel.js";
 import asyncHandeler from "express-async-handler";
 import slugify from "slugify";
 import ApiError from "../utils/apiErrors.js";
-
+import ApiFutures from "../utils/apiFutures.js";
 /* 
     @desc get all Products
     @route GET /api/products/
     @access Public
 */
 const getProducts = asyncHandeler(async (req, res, next) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 2;
-  const skip = (page - 1) * limit;
+  //build query
+  const apiFutures = new ApiFutures(Product.find(), req.query).sort().fields();
+  await apiFutures.filter();
+  await apiFutures.search();
+  apiFutures.paginate();
+  const{mongooseQuery,pagination}=apiFutures
 
-  const products = await Product.find().limit(limit).skip(skip);
+  const products = await mongooseQuery;
   if (products.length < 1) return next(new ApiError("Produts not found", 404));
-
-  res.status(200).json({ result: products.length, page, limit, data: products });
+  res.status(200).json({
+    result: products.length,
+    info: pagination,
+    data: products,
+  });
 });
 
 /* 
@@ -37,7 +43,7 @@ const getProduct = asyncHandeler(async (req, res, next) => {
     @access Private
 */
 const createProduct = asyncHandeler(async (req, res, next) => {
-  req.body.slug=slugify(req.body.title);
+  req.body.slug = slugify(req.body.title);
   const product = await Product.create(req.body);
   res.status(201).json(product);
 });
@@ -49,12 +55,10 @@ const createProduct = asyncHandeler(async (req, res, next) => {
 */
 const updateProduct = asyncHandeler(async (req, res, next) => {
   const { id } = req.params;
-  req.body.slug=slugify(req.body.title);
-  const product = await Product.findByIdAndUpdate(
-    { _id: id },
-    req.body,
-    { new: true }
-  );
+  req.body.slug = slugify(req.body.title);
+  const product = await Product.findByIdAndUpdate({ _id: id }, req.body, {
+    new: true,
+  });
   if (!product) return next(new ApiError("Product not found", 404));
 
   res.json(product);

@@ -2,6 +2,7 @@ import Category from "../models/categoryModel.js";
 import asyncHandeler from "express-async-handler";
 import slugify from "slugify";
 import ApiError from "../utils/apiErrors.js";
+import ApiFutures from "../utils/apiFutures.js";
 
 /* 
     @desc get all categories
@@ -9,17 +10,21 @@ import ApiError from "../utils/apiErrors.js";
     @access Public
 */
 const getCategories = asyncHandeler(async (req, res, next) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 2;
-  const skip = (page - 1) * limit;
+  //build query
+  const apiFutures = new ApiFutures(Category.find(), req.query).sort().fields();
+  await apiFutures.filter();
+  await apiFutures.search();
+  apiFutures.paginate();
+  const { mongooseQuery, pagination } = apiFutures;
 
-  const categories = await Category.find().limit(limit).skip(skip);
-  if (categories.length < 1)
-    return next(new ApiError("Categories not found", 404));
-  
-  res
-    .status(200)
-    .json({ result: categories.length, page, limit, data: categories });
+  const categories = await mongooseQuery;
+  if (categories.length < 1) return next(new ApiError("Brands not found", 404));
+
+  res.status(200).json({
+    result: categories.length,
+    info: pagination,
+    data: categories,
+  });
 });
 
 /* 

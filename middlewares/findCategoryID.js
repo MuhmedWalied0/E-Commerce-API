@@ -1,8 +1,9 @@
+import mongoose, { Mongoose } from "mongoose";
+
+
 const checkCategoryId = (req, res, next) => {
   if (req.params.categoryId) {
-    req.params.category = req.params.categoryId;
-  } else {
-    req.params.category = {};
+    req.query.category = req.params.categoryId;
   }
   next();
 };
